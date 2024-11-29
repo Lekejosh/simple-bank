@@ -1,14 +1,14 @@
 postgres:
-	docker run --name postgres14 -p 5400:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:14.1-alpine
+	docker run --name postgres14 -p 5400:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=admin -d postgres:14.1-alpine
 
 postgresrun:
 	docker start postgres14
 	
 createdb:
-	docker exec -it postgres14 createdb --username=root --owner=root simple_bank
+	docker exec -it postgres14 createdb --username=postgres --owner=postgres simple_bank
 	
 dropdb:
-	docker exec -it postgres14 dropdb --username=root --owner=root simple_bank
+	docker exec -it postgres14 dropdb --username=postgres --owner=postgres simple_bank
 
 migrateup:
 	migrate -path db/migration -database "postgresql://postgres:admin@localhost:5400/simple_bank?sslmode=disable" -verbose up
