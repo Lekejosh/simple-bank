@@ -18,7 +18,7 @@ jobs:
         # Docker Hub image
         image: postgres:14
         ports:
-          - 5000:5432
+          - 5400:5432
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: secret
