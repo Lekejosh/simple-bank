@@ -1,0 +1,77 @@
+
+Project simple_bank{
+    database_type: 'PostgreSQL'
+}
+
+Table "account" {
+  "id" bigint [pk, not null]
+  "owner" "character varying" [not null]
+  "balance" bigint [not null]
+  "currency" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    (owner, currency) [unique, name: "owner_currency_key"]
+    owner [type: btree, name: "account_owner_idx"]
+  }
+}
+
+Table "entries" {
+  "id" bigint [pk, not null]
+  "account_id" bigint [not null]
+  "amount" bigint [not null, note: 'can be negative or positive']
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    account_id [type: btree, name: "entries_account_id_idx"]
+  }
+}
+
+Table "schema_migrations" {
+  "version" bigint [pk, not null]
+  "dirty" boolean [not null]
+}
+
+Table "sessions" {
+  "id" uuid [pk, not null, default: `public.uuid_generate_v4()`]
+  "username" "character varying" [not null]
+  "refresh_token" "character varying" [not null]
+  "user_agent" "character varying" [not null]
+  "client_ip" "character varying" [not null]
+  "is_blocked" boolean [not null, default: false]
+  "expires_at" timestamp [not null]
+  "created_at" timestamp [not null, default: `now()`]
+}
+
+Table "transfers" {
+  "id" bigint [pk, not null]
+  "from_account_id" bigint [not null]
+  "to_account_id" bigint [not null]
+  "amount" bigint [not null, note: 'must be positive']
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    from_account_id [type: btree, name: "transfers_from_account_id_idx"]
+    (from_account_id, to_account_id) [type: btree, name: "transfers_from_account_id_to_account_id_idx"]
+    to_account_id [type: btree, name: "transfers_to_account_id_idx"]
+  }
+}
+
+Table "users" {
+  "username" "character varying" [pk, not null]
+  "hashed_password" "character varying" [not null]
+  "full_name" "character varying" [not null]
+  "email" "character varying" [unique, not null]
+  "created_at" timestamp [not null, default: `now()`]
+  "password_changed_at" timestamp [not null, default: `'0001-01-01 00:00:00'::timestampwithouttimezone`]
+}
+
+Ref "account_owner_fkey":"users"."username" < "account"."owner"
+
+Ref "entries_account_id_fkey":"account"."id" < "entries"."account_id"
+
+Ref "sessions_username_fkey":"users"."username" < "sessions"."username"
+
+Ref "transfers_from_account_id_fkey":"account"."id" < "transfers"."from_account_id"
+
+Ref "transfers_to_account_id_fkey":"account"."id" < "transfers"."to_account_id"
